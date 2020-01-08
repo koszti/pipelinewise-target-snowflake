@@ -351,7 +351,12 @@ class DbSync:
         # Generating key in S3 bucket 
         bucket = self.connection_config['s3_bucket']
         s3_key_prefix = self.connection_config.get('s3_key_prefix', '')
-        s3_key = "{}pipelinewise_{}_{}.csv".format(s3_key_prefix, stream, datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f"))
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        s3_key = "{}pipelinewise_{}_{}.csv".format(s3_key_prefix, stream, timestamp)
+
+        stage_prefix = self.connection_config.get('stage_key_prefix', s3_key_prefix)
+        stage_key_prefix = "{}pipelinewise_{}_{}.csv".format(stage_prefix, stream, timestamp)
 
         logger.info("Target S3 bucket: {}, local file: {}, S3 key: {}".format(bucket, file, s3_key))
 
@@ -384,7 +389,7 @@ class DbSync:
         else:
             self.s3.upload_file(file, bucket, s3_key)
 
-        return s3_key
+        return stage_key_prefix
 
 
     def delete_from_stage(self, s3_key):
